@@ -8,7 +8,7 @@ jobs:
   build-release:
     uses: mailprotector/workflows/.github/workflows/build-ecr-single.yml@main
     with:
-      ECR_REPOSITORY: dns-healthcheck 
+      ECR_REPOSITORY: apex-rbldnsd-healthcheck-staging 
     secrets:
       AWS_IAM_ROLE_ARN: ${{ secrets.STAGING_IAM_ROLE_ARN }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
