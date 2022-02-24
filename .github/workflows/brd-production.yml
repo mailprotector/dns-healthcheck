@@ -1,0 +1,87 @@
+#name: build-release-deploy
+#on:
+#  push:
+#    branches:
+#      - main
+#
+#permissions:
+#  id-token: write # required to use OIDC authentication
+#  contents: read # required to checkout the code from the rep
+#
+#env:
+#  ECR_REPOSITORY: apex-rbldnsd-healthcheck-production
+#
+#jobs:
+#
+#  build-release:
+#    name: Build Docker image and push to ECR
+#    runs-on: ubuntu-latest
+#    strategy:
+#      matrix:
+#        aws-region: [us-east-1, us-east-2]
+#
+#    steps:
+#      - uses: actions/checkout@v2
+#
+#      - name: Configure AWS credentials
+#        id: config-aws-region
+#        uses: aws-actions/configure-aws-credentials@v1
+#        with:
+#          role-to-assume: ${{ secrets.PRODUCTION_IAM_ROLE_ARN }}
+#          aws-region: ${{ matrix.aws-region }}
+#  
+#      - name: Prepare
+#        id: prep
+#        run: |
+#          TAG=$(echo $GITHUB_SHA | head -c7)
+#          echo ::set-output name=tagged_image::${TAG}
+#          echo ::set-output name=latest_image::latest
+#          echo ::set-output name=tag::${TAG}
+#  
+#      - name: Set up Docker Buildx
+#        id: buildx
+#        uses: docker/setup-buildx-action@master
+#  
+#      - name: Login to Amazon ECR
+#        id: login-ecr
+#        uses: aws-actions/amazon-ecr-login@v1
+#  
+#      - name: Cache Docker layers
+#        uses: actions/cache@v2
+#        with:
+#          path: /tmp/.buildx-cache
+#          key: ${{ runner.os }}-buildx-${{ github.sha }}
+#          restore-keys: |
+#            ${{ runner.os }}-buildx
+#
+#      - name: Build image for ${{ matrix.aws-region }}
+#        uses: docker/build-push-action@v2
+#        with:
+#          context: .
+#          builder: ${{ steps.buildx.outputs.name }}
+#          file: ./Dockerfile
+#          push: false
+#          load: true
+#          tags: ${{ steps.prep.outputs.tagged_image }}
+#          cache-from: type=local,src=/tmp/.buildx-cache
+#          cache-to: type=local,dest=/tmp/.buildx-cache-new
+#  
+#      - name: Tag and Push image to AWS ECR as SHA
+#        env:
+#          ECR_URL: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ steps.prep.outputs.tagged_image }}
+#        run: |
+#          docker tag ${{ steps.prep.outputs.tagged_image }} ${{ env.ECR_URL }}
+#          docker push ${{ env.ECR_URL }}
+#  
+#      - name: Tag and Push image to AWS ECR as latest
+#        env:
+#          ECR_URL: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ steps.prep.outputs.latest_image }}
+#        run: |
+#          docker tag ${{ steps.prep.outputs.tagged_image }} ${{ env.ECR_URL }}
+#          docker push ${{ env.ECR_URL }}
+#  
+#      - name: Move cache
+#        run: |
+#          rm -rf /tmp/.buildx-cache/
+#          mv /tmp/.buildx-cache-new/ /tmp/.buildx-cache/
+#
