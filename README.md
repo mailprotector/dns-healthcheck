@@ -2,7 +2,7 @@
 A light-weight utility for testing a DNS server via an HTTP request
 
 ## How it works
-dns-healthcheck sets up a webt server that sends a DNS query to the specified DNS server and returns a 2xx HTTP code for successful queries, and a 5xx for failed queries.
+dns-healthcheck sets up a web server that sends a DNS query to the specified DNS server and returns a 2xx HTTP code for successful queries, and a 5xx for failed queries.
 ## Environment Variables
 
 | Name     | Description                        |  Type  |       Default       | Required |
