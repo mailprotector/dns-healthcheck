@@ -78,7 +78,7 @@ jobs:
   
       - name: Tag and Push image to AWS ECR ${{ matrix.aws-region }} as latest
         env:
-          ECR_URL: ${{ env.ECR_PUBLIC_URL}}/${{ env.ECR_REPOSITORY }}:${{ steps.prep.outputs.tagged_image }}
+          ECR_URL: ${{ env.ECR_PUBLIC_URL}}/${{ env.ECR_REPOSITORY }}:${{ steps.prep.outputs.latest_image }}
         run: |
           docker tag ${{ steps.prep.outputs.tagged_image }} ${{ env.ECR_URL }}
           docker push ${{ env.ECR_URL }}
